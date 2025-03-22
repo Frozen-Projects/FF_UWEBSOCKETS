@@ -1,0 +1,82 @@
+cmake_minimum_required(VERSION 3.15)
+project(uWebSocketsLib LANGUAGES C CXX)
+
+# Options
+option(WITH_LTO "Enable link time optimization" OFF)
+
+# === Customizable Paths ===
+# OpenSSL
+set(OPENSSL_INCLUDE_DIR "" CACHE PATH "Path to OpenSSL include directory")
+set(OPENSSL_LIBSSL_LIB "" CACHE FILEPATH "Full path to libssl.lib")
+set(OPENSSL_LIBCRYPTO_LIB "" CACHE FILEPATH "Full path to libcrypto.lib")
+
+# zlib
+set(ZLIB_INCLUDE_DIR "" CACHE PATH "Path to zlib include directory")
+set(ZLIB_STATIC_LIB "" CACHE FILEPATH "Full path to zlibstatic.lib")
+
+# libuv
+set(LIBUV_INCLUDE_DIR "" CACHE PATH "Path to libuv include directory")
+set(LIBUV_LIB "" CACHE FILEPATH "Full path to libuv.lib")
+
+# C++/C Standard
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
+# Platform flags
+if(MSVC)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+endif()
+
+# Source files
+file(GLOB_RECURSE UWS_SOURCES
+    src/*.c
+    src/eventing/*.c
+    src/crypto/*.c
+    uSockets/src/*.c
+)
+
+add_library(uwebsockets STATIC ${UWS_SOURCES})
+
+# Internal includes
+target_include_directories(uwebsockets PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/eventing
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto
+    ${CMAKE_CURRENT_SOURCE_DIR}/uSockets/src
+)
+
+# External includes
+target_include_directories(uwebsockets PUBLIC
+    ${OPENSSL_INCLUDE_DIR}
+    ${ZLIB_INCLUDE_DIR}
+    ${LIBUV_INCLUDE_DIR}
+)
+
+# Link external libs
+target_link_libraries(uwebsockets PUBLIC
+    ${OPENSSL_LIBSSL_LIB}
+    ${OPENSSL_LIBCRYPTO_LIB}
+    ${ZLIB_STATIC_LIB}
+    ${LIBUV_LIB}
+    ws2_32.lib
+    userenv.lib
+)
+
+# LTO Support
+if(WITH_LTO AND MSVC)
+    target_compile_options(uwebsockets PRIVATE /GL)
+    set_target_properties(uwebsockets PROPERTIES LINK_FLAGS "/LTCG")
+endif()
+
+# Installation
+install(TARGETS uwebsockets
+    ARCHIVE DESTINATION lib
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
+install(DIRECTORY
+    src/ src/eventing/ src/crypto/ uSockets/src/
+    DESTINATION include/uwebsockets
+    FILES_MATCHING PATTERN "*.h"
+)
