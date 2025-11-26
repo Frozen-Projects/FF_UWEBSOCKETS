@@ -13,6 +13,6 @@ class UFF_UWEBSOCKETSBPLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_UCLASS_BODY()
 
-	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Execute Sample function", Keywords = "FF_UWEBSOCKETS sample test testing"), Category = "FF_UWEBSOCKETS")
+	UFUNCTION(BlueprintCallable, meta = (DisplayName = "Execute Sample function", Keywords = "FF_UWEBSOCKETS sample test testing"), Category = "Frozen Forest|uWebSockets")
 	static float UWS_Sample(float Param);
 };
